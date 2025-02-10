@@ -1,91 +1,78 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useMemo, useCallback } from "react";
+import {
+  Box,
+  Container,
+  Typography,
+  Stack,
+  Paper,
+  IconButton,
+} from "@mui/material";
+import ViewModuleIcon from "@mui/icons-material/ViewModule";
+import TableRowsIcon from "@mui/icons-material/TableRows";
+import AdvocatesGrid from "./components/Advocate/AdvocatesGrid";
+import AdvocatesTable from "./components/Advocate/AdvocatesTable";
+import { useGetAdvocates } from "./hooks/useGetAdvocates";
+import useSearch from "./hooks/useSearch";
+import { colors } from "@/app/constants";
+
+const { SOLACE_GREEN, BLACK } = colors;
 
 export default function Home() {
-  const [advocates, setAdvocates] = useState([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState([]);
+  const { searchTerm, SearchComponent } = useSearch();
+  const { advocates } = useGetAdvocates(searchTerm);
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
-  useEffect(() => {
-    console.log("fetching advocates...");
-    fetch("/api/advocates").then((response) => {
-      response.json().then((jsonResponse) => {
-        setAdvocates(jsonResponse.data);
-        setFilteredAdvocates(jsonResponse.data);
-      });
-    });
+  const toggleView = useCallback(() => {
+    setViewMode((prev) => (prev === "grid" ? "table" : "grid"));
   }, []);
 
-  const onChange = (e) => {
-    const searchTerm = e.target.value;
-
-    document.getElementById("search-term").innerHTML = searchTerm;
-
-    console.log("filtering advocates...");
-    const filteredAdvocates = advocates.filter((advocate) => {
-      return (
-        advocate.firstName.includes(searchTerm) ||
-        advocate.lastName.includes(searchTerm) ||
-        advocate.city.includes(searchTerm) ||
-        advocate.degree.includes(searchTerm) ||
-        advocate.specialties.includes(searchTerm) ||
-        advocate.yearsOfExperience.includes(searchTerm)
-      );
-    });
-
-    setFilteredAdvocates(filteredAdvocates);
-  };
-
-  const onClick = () => {
-    console.log(advocates);
-    setFilteredAdvocates(advocates);
-  };
-
   return (
-    <main style={{ margin: "24px" }}>
-      <h1>Solace Advocates</h1>
-      <br />
-      <br />
-      <div>
-        <p>Search</p>
-        <p>
-          Searching for: <span id="search-term"></span>
-        </p>
-        <input style={{ border: "1px solid black" }} onChange={onChange} />
-        <button onClick={onClick}>Reset Search</button>
-      </div>
-      <br />
-      <br />
-      <table>
-        <thead>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>City</th>
-          <th>Degree</th>
-          <th>Specialties</th>
-          <th>Years of Experience</th>
-          <th>Phone Number</th>
-        </thead>
-        <tbody>
-          {filteredAdvocates.map((advocate) => {
-            return (
-              <tr>
-                <td>{advocate.firstName}</td>
-                <td>{advocate.lastName}</td>
-                <td>{advocate.city}</td>
-                <td>{advocate.degree}</td>
-                <td>
-                  {advocate.specialties.map((s) => (
-                    <div>{s}</div>
-                  ))}
-                </td>
-                <td>{advocate.yearsOfExperience}</td>
-                <td>{advocate.phoneNumber}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </main>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: `linear-gradient(180deg, ${SOLACE_GREEN} 85%, ${BLACK} 100%)`,
+        color: "white",
+      }}
+    >
+      <Container className="mt-6" sx={{ paddingBottom: 10 }}>
+        <Stack py={2}>
+          <Typography variant="h4" className="mb-6">
+            Solace Advocates
+          </Typography>
+        </Stack>
+
+        <Stack
+          spacing={2}
+          py={2}
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          {SearchComponent}
+
+          {/* Icon toggle for Grid vs Table */}
+          <IconButton
+            onClick={toggleView}
+            color="primary"
+            sx={{ maxWidth: 48, color: "#FFF" }}
+          >
+            {viewMode === "grid" ? <TableRowsIcon /> : <ViewModuleIcon />}
+          </IconButton>
+        </Stack>
+
+        <Stack>
+          {viewMode === "grid" ? (
+            <AdvocatesGrid advocates={advocates} />
+          ) : (
+            <AdvocatesTable advocates={advocates} />
+          )}
+        </Stack>
+      </Container>
+    </Box>
   );
 }
