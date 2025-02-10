@@ -31,7 +31,7 @@ docker compose up -d
 3. Push migration to the database
 
 ```bash
-npx drizzle-kit push
+npx drizzle-kit migrate
 ```
 
 4. Seed the database
