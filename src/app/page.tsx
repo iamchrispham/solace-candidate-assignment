@@ -6,7 +6,6 @@ import {
   Container,
   Typography,
   Stack,
-  Paper,
   IconButton,
 } from "@mui/material";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
